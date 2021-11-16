@@ -1,5 +1,7 @@
 # App.Metrics.Reporting.InfluxDB2
 
+![Nuget](https://img.shields.io/nuget/dt/App.Metrics.Reporting.InfluxDB2?style=for-the-badge)
+
 Usage sample:
 
 binding config in C#:
