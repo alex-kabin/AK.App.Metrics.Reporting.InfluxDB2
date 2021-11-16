@@ -1,6 +1,6 @@
 # App.Metrics.Reporting.InfluxDB2
 
-![Nuget](https://img.shields.io/nuget/dt/App.Metrics.Reporting.InfluxDB2?style=for-the-badge)
+[![](https://img.shields.io/nuget/dt/App.Metrics.Reporting.InfluxDB2?style=for-the-badge&label=nuget%20downloads)](https://www.nuget.org/packages/App.Metrics.Reporting.InfluxDB2)
 
 Usage sample:
 
