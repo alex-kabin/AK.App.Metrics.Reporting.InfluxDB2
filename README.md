@@ -2,7 +2,7 @@
 
 Usage sample:
 
-binding config in c#:
+binding config in C#:
 ```
 if (configuration.GetSection(nameof(InfluxDbOptions)).Exists()) {
     builder.Report.ToInfluxDb(
