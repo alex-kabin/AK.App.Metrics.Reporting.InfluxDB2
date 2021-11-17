@@ -23,7 +23,9 @@ namespace App.Metrics.Reporting.InfluxDb2
         {
             get {
                 var endpoint = "write";
-                endpoint += $"?bucket={Uri.EscapeDataString(Bucket)}";
+                if (!string.IsNullOrEmpty(Bucket)) {
+                    endpoint += $"?bucket={Uri.EscapeDataString(Bucket)}";
+                }
 
                 if (!string.IsNullOrEmpty(OrganizationId)) {
                     endpoint += $"&orgID={Uri.EscapeDataString(OrganizationId)}";

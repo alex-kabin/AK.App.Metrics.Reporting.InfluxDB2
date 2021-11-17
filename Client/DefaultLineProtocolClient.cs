@@ -139,7 +139,7 @@ namespace App.Metrics.Reporting.InfluxDb2.Client
                             $"Failed to create InfluxDB Bucket '{_influxDbOptions.Bucket}' - Status: {(int)response.StatusCode} ({response.ReasonPhrase})";
                     
                     if (!string.IsNullOrEmpty(responseString)) {
-                        errorMessage += $" Response: {responseString}";
+                        errorMessage += Environment.NewLine + responseString;
                     }
 
                     Logger.Error(errorMessage);
