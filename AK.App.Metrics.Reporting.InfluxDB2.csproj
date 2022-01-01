@@ -4,13 +4,13 @@
     <TargetFramework>netstandard2.1</TargetFramework>
 	<PackageTags>appmetrics;influxdb2</PackageTags>
 	<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-	<Version>4.2.1</Version>
+	<Version>4.2.0</Version>
 	<SignAssembly>true</SignAssembly>
 	<AssemblyOriginatorKeyFile>Key.snk</AssemblyOriginatorKeyFile>
 	<Copyright>2021</Copyright>
 	<Authors>AK</Authors>
 	<Description>App Metrics reporting to InfluxDB v2</Description>
-	<RepositoryUrl>https://github.com/alex-kabin/App.Metrics.Reporting.InfluxDB2</RepositoryUrl>
+	<RepositoryUrl>https://github.com/alex-kabin/AK.App.Metrics.Reporting.InfluxDB2</RepositoryUrl>
 	<PackageLicenseFile>F:\projects\my\App.Metrics.Reporting.InfluxDB2\LICENSE</PackageLicenseFile>
   </PropertyGroup>
 
