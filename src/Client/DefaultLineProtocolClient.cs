@@ -8,6 +8,7 @@ using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Mime;
+using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,7 +20,7 @@ namespace App.Metrics.Reporting.InfluxDb2.Client
     {
         private static readonly ILog Logger = LogProvider.For<DefaultLineProtocolClient>();
 
-        private const long MIN_GZIP_LENGTH = 1024;
+        private const long MIN_GZIP_LENGTH = 2048;
 
         private static long _backOffTicks;
         private static long _failureAttempts;
@@ -41,10 +42,23 @@ namespace App.Metrics.Reporting.InfluxDb2.Client
             _failureAttempts = 0;
         }
 
-        public async Task<LineProtocolWriteResult> WriteAsync(
-            Stream payload,
-            CancellationToken cancellationToken = default
-        ) {
+        private async Task<InfluxDbError> TryReadErrorResponse(HttpResponseMessage response)
+        {
+            try {
+                if (response.Content.Headers.ContentType.MediaType == MediaTypeNames.Application.Json && response.Content.Headers.ContentLength < 4000) {
+                    var stream = await response.Content.ReadAsStreamAsync();
+                    var error = (InfluxDbError)(new DataContractJsonSerializer(typeof(InfluxDbError)).ReadObject(stream));
+                    return error;
+                }
+            }
+            catch {
+                // dont care
+            }
+            return null;
+        }
+
+        public async Task<LineProtocolWriteResult> WriteAsync(Stream payload, CancellationToken cancellationToken = default) 
+        {
             if (payload == null) {
                 return new LineProtocolWriteResult(true);
             }
@@ -70,23 +84,34 @@ namespace App.Metrics.Reporting.InfluxDb2.Client
             try {
                 HttpContent content = new StreamContent(payload);
                 if (useGzip) {
+                    Logger.Trace("GZipping payload");
                     content = new GzipContent(content);
                 }
 
                 var response = await _httpClient.PostAsync(_influxDbOptions.Endpoint, content, cancellationToken);
 
+                // if bucket no found and opted missing bucket creation
                 if (response.StatusCode == System.Net.HttpStatusCode.NotFound && _influxDbOptions.CreateBucketIfNotExists) {
-                    await TryCreateDatabase(cancellationToken);
+                    // creating bucket and retry writing
+                    var result = await TryCreateBucket(cancellationToken);
+                    if (!result.Success) {
+                        return result;
+                    }
                     response = await _httpClient.PostAsync(_influxDbOptions.Endpoint, content, cancellationToken);
                 }
 
                 if (!response.IsSuccessStatusCode) {
                     Interlocked.Increment(ref _failureAttempts);
 
-                    var errorMessage = $"Failed to write to InfluxDB - Status: {(int)response.StatusCode} ({response.ReasonPhrase})";
-                    Logger.Error(errorMessage);
-                    //Logger.Error(await response.Content.ReadAsStringAsync());
+                    var errorMessage = $"Failed writing to InfluxDB - Status: {(int)response.StatusCode} ({response.ReasonPhrase})";
 
+                    var error = await TryReadErrorResponse(response);
+                    if (error != null) {
+                        errorMessage += $"; Details: code='{error.Code}', message='{error.Message}'";
+                    }
+                    
+                    //Logger.Error(errorMessage);
+                    
                     return new LineProtocolWriteResult(false, errorMessage);
                 }
 
@@ -98,12 +123,12 @@ namespace App.Metrics.Reporting.InfluxDb2.Client
             }
             catch (Exception ex) {
                 Interlocked.Increment(ref _failureAttempts);
-                Logger.Error(ex, "Failed to write to InfluxDB");
+                Logger.Error(ex, "Failed writing to InfluxDB");
                 return new LineProtocolWriteResult(false, ex.ToString());
             }
         }
 
-        private async Task<LineProtocolWriteResult> TryCreateDatabase(CancellationToken cancellationToken = default)
+        private async Task<LineProtocolWriteResult> TryCreateBucket(CancellationToken cancellationToken = default)
         {
             try {
                 Logger.Trace($"Attempting to create InfluxDB Bucket '{_influxDbOptions.Bucket}'");
@@ -127,22 +152,14 @@ namespace App.Metrics.Reporting.InfluxDb2.Client
                 var response = await _httpClient.PostAsync("buckets", content, cancellationToken);
 
                 if (!response.IsSuccessStatusCode) {
-                    string responseString = null;
-                    try {
-                        responseString = await response.Content.ReadAsStringAsync();
-                    }
-                    catch (Exception) {
-                        // ignore;
+                    var errorMessage = $"Failed creating InfluxDB Bucket '{_influxDbOptions.Bucket}' - Status: {(int)response.StatusCode} ({response.ReasonPhrase})";
+
+                    var error = await TryReadErrorResponse(response);
+                    if (error != null) {
+                        errorMessage += $"; Details: code='{error.Code}', message='{error.Message}'";
                     }
 
-                    var errorMessage = 
-                            $"Failed to create InfluxDB Bucket '{_influxDbOptions.Bucket}' - Status: {(int)response.StatusCode} ({response.ReasonPhrase})";
-                    
-                    if (!string.IsNullOrEmpty(responseString)) {
-                        errorMessage += Environment.NewLine + responseString;
-                    }
-
-                    Logger.Error(errorMessage);
+                    //Logger.Error(errorMessage);
 
                     return new LineProtocolWriteResult(false, errorMessage);
                 }
@@ -152,7 +169,7 @@ namespace App.Metrics.Reporting.InfluxDb2.Client
                 return new LineProtocolWriteResult(true);
             }
             catch (Exception ex) {
-                Logger.Error(ex, $"Failed to create InfluxDB Bucket '{_influxDbOptions.Bucket}'");
+                Logger.Error(ex, $"Failed creating InfluxDB Bucket '{_influxDbOptions.Bucket}'");
                 return new LineProtocolWriteResult(false, ex.ToString());
             }
         }
@@ -163,7 +180,7 @@ namespace App.Metrics.Reporting.InfluxDb2.Client
                 return false;
             }
 
-            Logger.Error($"InfluxDB write backoff for {_backOffPeriod.Seconds} secs");
+            Logger.Warn($"InfluxDB write backoff for {_backOffPeriod.Seconds} secs");
 
             if (Interlocked.Read(ref _backOffTicks) == 0) {
                 Interlocked.Exchange(ref _backOffTicks, DateTime.UtcNow.Add(_backOffPeriod).Ticks);
