@@ -21,7 +21,8 @@ namespace App.Metrics.Reporting.InfluxDb2.Client
         private static readonly ILog Logger = LogProvider.For<DefaultLineProtocolClient>();
 
         private const long MIN_GZIP_LENGTH = 2048;
-
+        private const string JSON_CONTENT_TYPE = "application/json";
+        
         private static long _backOffTicks;
         private static long _failureAttempts;
         private static long _failuresBeforeBackoff;
@@ -45,7 +46,7 @@ namespace App.Metrics.Reporting.InfluxDb2.Client
         private async Task<InfluxDbError> TryReadErrorResponse(HttpResponseMessage response)
         {
             try {
-                if (response.Content.Headers.ContentType.MediaType == MediaTypeNames.Application.Json && response.Content.Headers.ContentLength < 4000) {
+                if (response.Content.Headers.ContentType.MediaType == JSON_CONTENT_TYPE && response.Content.Headers.ContentLength < 4000) {
                     var stream = await response.Content.ReadAsStreamAsync();
                     var error = (InfluxDbError)(new DataContractJsonSerializer(typeof(InfluxDbError)).ReadObject(stream));
                     return error;
@@ -146,8 +147,8 @@ namespace App.Metrics.Reporting.InfluxDb2.Client
                     );
                 }
 
-                var content = new StringContent($"{{{string.Join(',', lines)}}}", Encoding.UTF8);
-                content.Headers.ContentType = MediaTypeHeaderValue.Parse(MediaTypeNames.Application.Json);
+                var content = new StringContent($"{{{string.Join(",", lines)}}}", Encoding.UTF8);
+                content.Headers.ContentType = MediaTypeHeaderValue.Parse(JSON_CONTENT_TYPE);
 
                 var response = await _httpClient.PostAsync("buckets", content, cancellationToken);
 

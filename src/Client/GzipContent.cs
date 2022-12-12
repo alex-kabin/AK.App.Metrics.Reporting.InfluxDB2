@@ -33,7 +33,7 @@ namespace App.Metrics.Reporting.InfluxDb2.Client
         
         protected override async Task SerializeToStreamAsync(Stream stream, TransportContext context)
         {
-            await using var compressedStream = new GZipStream(stream, _compressionLevel, leaveOpen: true);
+            using var compressedStream = new GZipStream(stream, _compressionLevel, leaveOpen: true);
             await _originalContent.CopyToAsync(compressedStream);
         }
     }
