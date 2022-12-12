@@ -11,7 +11,7 @@
 	<Authors>AK</Authors>
 	<Description>App Metrics reporting to InfluxDB v2</Description>
 	<RepositoryUrl>https://github.com/alex-kabin/AK.App.Metrics.Reporting.InfluxDB2</RepositoryUrl>
-    <LangVersion>8.0</LangVersion>
+	<LangVersion>8.0</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
