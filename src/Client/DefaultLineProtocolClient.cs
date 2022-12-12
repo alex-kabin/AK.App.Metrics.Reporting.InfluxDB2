@@ -20,6 +20,8 @@ namespace App.Metrics.Reporting.InfluxDb2.Client
     {
         private static readonly ILog Logger = LogProvider.For<DefaultLineProtocolClient>();
 
+        private const string MEDIA_TYPE_JSON = "application/json";
+
         private const long MIN_GZIP_LENGTH = 2048;
 
         private static long _backOffTicks;
@@ -45,13 +47,12 @@ namespace App.Metrics.Reporting.InfluxDb2.Client
         private async Task<InfluxDbError> TryReadErrorResponse(HttpResponseMessage response)
         {
             try {
-                if (response.Content.Headers.ContentType.MediaType == MediaTypeNames.Application.Json && response.Content.Headers.ContentLength < 4000) {
+                if (response.Content.Headers.ContentType.MediaType == MEDIA_TYPE_JSON && response.Content.Headers.ContentLength < 4000) {
                     var stream = await response.Content.ReadAsStreamAsync();
                     var error = (InfluxDbError)(new DataContractJsonSerializer(typeof(InfluxDbError)).ReadObject(stream));
                     return error;
                 }
-            }
-            catch {
+            } catch {
                 // dont care
             }
             return null;
@@ -78,7 +79,7 @@ namespace App.Metrics.Reporting.InfluxDb2.Client
             }
 
             if (NeedToBackoff()) {
-                return new LineProtocolWriteResult(false, "Too many failures in writing to InfluxDB, Circuit Opened");
+                return new LineProtocolWriteResult(false, "Too many failures writing to InfluxDB, Circuit Opened");
             }
 
             try {
@@ -146,8 +147,8 @@ namespace App.Metrics.Reporting.InfluxDb2.Client
                     );
                 }
 
-                var content = new StringContent($"{{{string.Join(',', lines)}}}", Encoding.UTF8);
-                content.Headers.ContentType = MediaTypeHeaderValue.Parse(MediaTypeNames.Application.Json);
+                var content = new StringContent($"{{{string.Join(",", lines)}}}", Encoding.UTF8);
+                content.Headers.ContentType = MediaTypeHeaderValue.Parse(MEDIA_TYPE_JSON);
 
                 var response = await _httpClient.PostAsync("buckets", content, cancellationToken);
 

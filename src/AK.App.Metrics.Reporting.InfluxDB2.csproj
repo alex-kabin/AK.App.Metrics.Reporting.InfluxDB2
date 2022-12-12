@@ -1,23 +1,23 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
-	<PackageTags>appmetrics;influxdb2</PackageTags>
-	<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-	<Version>4.3.0</Version>
-	<SignAssembly>true</SignAssembly>
-	<AssemblyOriginatorKeyFile>Key.snk</AssemblyOriginatorKeyFile>
-	<Copyright>2021</Copyright>
-	<Authors>AK</Authors>
-	<Description>App Metrics reporting to InfluxDB v2</Description>
-	<RepositoryUrl>https://github.com/alex-kabin/AK.App.Metrics.Reporting.InfluxDB2</RepositoryUrl>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>netstandard2.0</TargetFramework>
+		<PackageTags>appmetrics;influxdb2</PackageTags>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<Version>4.3.1</Version>
+		<SignAssembly>true</SignAssembly>
+		<AssemblyOriginatorKeyFile>Key.snk</AssemblyOriginatorKeyFile>
+		<Copyright>2021</Copyright>
+		<Authors>AK</Authors>
+		<Description>App Metrics reporting to InfluxDB v2</Description>
+		<RepositoryUrl>https://github.com/alex-kabin/AK.App.Metrics.Reporting.InfluxDB2</RepositoryUrl>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <Compile Remove="_ReSharper.Caches\**" />
-    <EmbeddedResource Remove="_ReSharper.Caches\**" />
-    <None Remove="_ReSharper.Caches\**" />
-  </ItemGroup>
+	<ItemGroup>
+		<Compile Remove="_ReSharper.Caches\**" />
+		<EmbeddedResource Remove="_ReSharper.Caches\**" />
+		<None Remove="_ReSharper.Caches\**" />
+	</ItemGroup>
 
 	<PropertyGroup>
 		<PackageLicenseFile>LICENSE</PackageLicenseFile>
@@ -25,17 +25,17 @@
 
 
 	<ItemGroup>
-    <PackageReference Include="App.Metrics.Abstractions" Version="4.3.0" />
-    <PackageReference Include="App.Metrics.Core" Version="4.3.0" />
-    <PackageReference Include="App.Metrics.Formatters.InfluxDB" Version="4.3.0" />
-  </ItemGroup>
+		<PackageReference Include="App.Metrics.Abstractions" Version="4.3.0" />
+		<PackageReference Include="App.Metrics.Core" Version="4.3.0" />
+		<PackageReference Include="App.Metrics.Formatters.InfluxDB" Version="4.3.0" />
+	</ItemGroup>
 
 
 	<ItemGroup>
-	  <None Update="LICENSE">
-	    <Pack>True</Pack>
-	    <PackagePath>\</PackagePath>
-	  </None>
+		<None Update="LICENSE">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
 	</ItemGroup>
 
 </Project>

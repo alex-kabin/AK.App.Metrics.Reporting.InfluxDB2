@@ -67,7 +67,7 @@ namespace App.Metrics.Reporting.InfluxDb2
 
             LineProtocolWriteResult result;
 
-            await using (var stream = new MemoryStream()) {
+            using (var stream = new MemoryStream()) {
                 await Formatter.WriteAsync(stream, metricsData, cancellationToken);
                 stream.Position = 0;
                 result = await _lineProtocolClient.WriteAsync(stream, cancellationToken);
